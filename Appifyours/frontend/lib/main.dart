@@ -18,7 +18,7 @@ class MyApp extends StatelessWidget {
       elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
             padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)))),
       inputDecorationTheme: InputDecorationTheme(
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
         filled: true, fillColor: Colors.grey.shade50,
@@ -78,6 +78,28 @@ class _HomePageState extends State<HomePage> {
                         const SizedBox(width: 8),
                         Text(
                           'jeev Chopra',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        const Spacer(),
+                        const Icon(Icons.search, color: Colors.white, size: 20),
+                        const SizedBox(width: 12),
+                        const Icon(Icons.shopping_cart, color: Colors.white, size: 20),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    color: Color(0x2196f3),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.store, size: 32, color: Colors.white),
+                        const SizedBox(width: 8),
+                        Text(
+                          'My Store',
                           style: const TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
