@@ -12,7 +12,7 @@ class MyApp extends StatelessWidget {
       brightness: Brightness.light,
       appBarTheme: const AppBarTheme(
           elevation: 4, shadowColor: Colors.black38, color: Colors.blue, foregroundColor: Colors.white),
-      cardTheme: CardThemeData(
+      cardTheme: CardTheme(
           elevation: 3, shadowColor: Colors.black12,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
       elevatedButtonTheme: ElevatedButtonThemeData(
