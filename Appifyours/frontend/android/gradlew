@@ -6,7 +6,7 @@
 
 # Attempt to set APP_HOME
 SAVED="\$(pwd)"
-cd "\$(dirname "\$0")" || exit
++ cd "$(dirname "$0")" || exit
 APP_HOME="\$(pwd -P)"
 cd "\$SAVED" || exit
 
