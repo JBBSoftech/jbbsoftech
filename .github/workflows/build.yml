@@ -53,6 +53,9 @@ jobs:
         flutter analyze || true
       continue-on-error: true
 
+    - name: Make gradlew executable
+      run: chmod +x Appifyours/frontend/android/gradlew
+
     - name: Run tests (optional)
       run: |
         cd Appifyours/frontend
