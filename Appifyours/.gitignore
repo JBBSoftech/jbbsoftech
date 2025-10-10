@@ -5,6 +5,7 @@
 .packages
 .pub-cache/
 .build/
+pubspec.lock
 
 # IDE
 .idea/
