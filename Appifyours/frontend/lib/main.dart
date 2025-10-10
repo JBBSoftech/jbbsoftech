@@ -69,6 +69,28 @@ class _HomePageState extends State<HomePage> {
           key: ValueKey<int>(index),
           child: Column(
             children: [
+                  Container(
+                    color: Color(0x2196f3),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.store, size: 32, color: Colors.white),
+                        const SizedBox(width: 8),
+                        Text(
+                          'mohana kunji',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        const Spacer(),
+                        const Icon(Icons.search, color: Colors.white, size: 20),
+                        const SizedBox(width: 12),
+                        const Icon(Icons.shopping_cart, color: Colors.white, size: 20),
+                      ],
+                    ),
+                  ),
             ],
           ),
         ),
