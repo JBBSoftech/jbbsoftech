@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:carousel_slider/carousel_slider.dart';
+import 'package:carousel_slider/carousel_slider.dart' as cs;
 void main() => runApp(const MyApp());
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -58,7 +58,7 @@ class _HomePageState extends State<HomePage> {
     body: PageView.builder(
       controller: _pageController,
       onPageChanged: _onPageChanged,
-      itemCount: 1,
+      itemCount: ${widget.pages.length},
       itemBuilder: (context, index) => AnimatedSwitcher(
         duration: const Duration(milliseconds: 300),
         transitionBuilder: (Widget child, Animation<double> animation) => FadeTransition(
@@ -77,7 +77,7 @@ class _HomePageState extends State<HomePage> {
                         const Icon(Icons.store, size: 32, color: Colors.white),
                         const SizedBox(width: 8),
                         Text(
-                          'jeev Chopra',
+                          'jeev Chopragreen',
                           style: const TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
@@ -96,6 +96,5 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     ),
-    bottomNavigationBar: _currentPageIndex == 0 ? _buildBottomNavigationBar() : null,
   );
 }
