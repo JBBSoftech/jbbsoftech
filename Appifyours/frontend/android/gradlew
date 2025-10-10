@@ -4,24 +4,28 @@
 # Gradle startup script for UN*X
 ##############################################################################
 
-    # Attempt to set APP_HOME
-    SAVED="\$(pwd)"
-    cd "$(dirname "$0")" || exit
-    APP_HOME="\$(pwd -P)"
-    cd "\$SAVED" || exit
+# Attempt to set APP_HOME
+SAVED="$(pwd)"
+cd "$(dirname "$0")" || exit
+APP_HOME="$(pwd -P)"
+cd "$SAVED" || exit
 
-    APP_NAME="Gradle"
+APP_NAME="Gradle"
+APP_BASE_NAME=${0##*/}
+
+# Add default JVM options here
+DEFAULT_JVM_OPTS='"-Xmx64m" "-Xms64m"'
 
 # Use the maximum available, or set MAX_FD != -1 to use that value
 MAX_FD=maximum
 
 warn() {
-    echo "\$*"
+    echo "$*"
 } >&2
 
 die() {
     echo
-    echo "\$*"
+    echo "$*"
     echo
     exit 1
 } >&2
@@ -31,7 +35,7 @@ cygwin=false
 msys=false
 darwin=false
 nonstop=false
-case "\$(uname)" in
+case "$(uname)" in
 CYGWIN*)
     cygwin=true
     ;;
@@ -46,18 +50,18 @@ NONSTOP*)
     ;;
 esac
 
-CLASSPATH=\$APP_HOME/gradle/wrapper/gradle-wrapper.jar
+CLASSPATH=$APP_HOME/gradle/wrapper/gradle-wrapper.jar
 
 # Determine the Java command to use to start the JVM
-if [ -n "\$JAVA_HOME" ]; then
-    if [ -x "\$JAVA_HOME/jre/sh/java" ]; then
+if [ -n "$JAVA_HOME" ]; then
+    if [ -x "$JAVA_HOME/jre/sh/java" ]; then
         # IBM's JDK on AIX uses strange locations for the executables
-        JAVACMD=\$JAVA_HOME/jre/sh/java
+        JAVACMD=$JAVA_HOME/jre/sh/java
     else
-        JAVACMD=\$JAVA_HOME/bin/java
+        JAVACMD=$JAVA_HOME/bin/java
     fi
-    if [ ! -x "\$JAVACMD" ]; then
-        die "ERROR: JAVA_HOME is set to an invalid directory: \$JAVA_HOME
+    if [ ! -x "$JAVACMD" ]; then
+        die "ERROR: JAVA_HOME is set to an invalid directory: $JAVA_HOME
 
 Please set the JAVA_HOME variable in your environment to match the
 location of your Java installation."
@@ -71,45 +75,37 @@ location of your Java installation."
 fi
 
 # Increase the maximum file descriptors if we can
-if ! "\$cygwin" && ! "\$darwin" && ! "\$nonstop"; then
-    case \$MAX_FD in
+if ! "$cygwin" && ! "$darwin" && ! "$nonstop"; then
+    case $MAX_FD in
     max*)
-        MAX_FD=\$(ulimit -H -n) ||
+        MAX_FD=$(ulimit -H -n) ||
             warn "Could not query maximum file descriptor limit"
         ;;
     esac
-    case \$MAX_FD in
+    case $MAX_FD in
     '' | soft) : ;;
     *)
-        ulimit -n "\$MAX_FD" ||
-            warn "Could not set maximum file descriptor limit: \$MAX_FD"
+        ulimit -n "$MAX_FD" ||
+            warn "Could not set maximum file descriptor limit: $MAX_FD"
         ;;
     esac
 fi
 
-# Collect all arguments for the java command, stacking in reverse order:
-#   * args from the command line
-#   * the main class name
-#   * -classpath
-#   * -D...appname settings
-#   * --module-path (only if needed)
-#   * DEFAULT_JVM_OPTS, JAVA_OPTS, and GRADLE_OPTS environment variables
-
 # For Cygwin or MSYS, switch paths to Windows format before running java
-if "\$cygwin" || "\$msys"; then
-    APP_HOME=\$(cygpath --path --mixed "\$APP_HOME")
-    CLASSPATH=\$(cygpath --path --mixed "\$CLASSPATH")
+if "$cygwin" || "$msys"; then
+    APP_HOME=$(cygpath --path --mixed "$APP_HOME")
+    CLASSPATH=$(cygpath --path --mixed "$CLASSPATH")
 
-    JAVACMD=\$(cygpath --unix "\$JAVACMD")
+    JAVACMD=$(cygpath --unix "$JAVACMD")
 
     # Now convert the arguments - kludge to limit ourselves to /bin/sh
     for arg; do
         if
-            case \$arg in
+            case $arg in
             -*) false ;;
             # doesn't match option pattern
             ?*)
-                eval "set -- \\\$$@" \"\$arg\""
+                eval "set -- "$@" "$arg""
                 ;;
             esac
         then break; fi
@@ -118,12 +114,12 @@ fi
 
 # Escape application args
 save() {
-    for i; do printf %s\\n "\$i" | sed "s/'/'\\\\''/g;1s/^/'/;\\$s/\\$/' \\\\\\/"; done
+    for i; do printf %s\n "$i" | sed "s/'/'\\''/g;1s/^/'/;$$s/$/' \\/"; done
     echo " "
 }
-APP_ARGS=\$(save "\$@")
+APP_ARGS=$(save "$@")
 
 # Collect all arguments for the java command, following the shell quoting and substitution rules
-eval set -- "\$DEFAULT_JVM_OPTS" "\$JAVA_OPTS" "\$GRADLE_OPTS" "\"-Dorg.gradle.appname=\$APP_BASE_NAME\"" -classpath "\"\$CLASSPATH\"" org.gradle.wrapper.GradleWrapperMain "\$APP_ARGS"
+eval set -- "$DEFAULT_JVM_OPTS" "$JAVA_OPTS" "$GRADLE_OPTS" ""-Dorg.gradle.appname=$APP_BASE_NAME"" -classpath ""$CLASSPATH"" org.gradle.wrapper.GradleWrapperMain "$APP_ARGS"
 
-exec "\$JAVACMD" "\$@"
+exec "$JAVACMD" "$@"
