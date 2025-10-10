@@ -69,69 +69,6 @@ class _HomePageState extends State<HomePage> {
           key: ValueKey<int>(index),
           child: Column(
             children: [
-                  Container(
-                    color: Color(0x2196f3),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.store, size: 32, color: Colors.white),
-                        const SizedBox(width: 8),
-                        Text(
-                          'jeev Chopragreen',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                        const Spacer(),
-                        const Icon(Icons.search, color: Colors.white, size: 20),
-                        const SizedBox(width: 12),
-                        const Icon(Icons.shopping_cart, color: Colors.white, size: 20),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    height: 160,
-                    child: Stack(
-                      children: [
-                        Container(color: Colors.grey[300]),
-                        Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                'Welcome to Our Store!',
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                  shadows: [
-                                    Shadow(
-                                      blurRadius: 4.0,
-                                      color: Colors.black,
-                                      offset: Offset(1.0, 1.0),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              ElevatedButton(
-                                onPressed: () {},
-                                style: ElevatedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                ),
-                                child: Text('Shop Now', style: const TextStyle(fontSize: 12)),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
             ],
           ),
         ),
