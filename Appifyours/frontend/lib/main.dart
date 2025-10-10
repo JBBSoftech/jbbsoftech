@@ -58,7 +58,7 @@ class _HomePageState extends State<HomePage> {
     body: PageView.builder(
       controller: _pageController,
       onPageChanged: _onPageChanged,
-      itemCount: ${widget.pages.length},
+      itemCount: 1,
       itemBuilder: (context, index) => AnimatedSwitcher(
         duration: const Duration(milliseconds: 300),
         transitionBuilder: (Widget child, Animation<double> animation) => FadeTransition(
