@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:carousel_slider/carousel_slider.dart' as cs;
+import 'package:carousel_slider/carousel_slider.dart';
 void main() => runApp(const MyApp());
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -12,13 +12,13 @@ class MyApp extends StatelessWidget {
       brightness: Brightness.light,
       appBarTheme: const AppBarTheme(
           elevation: 4, shadowColor: Colors.black38, color: Colors.blue, foregroundColor: Colors.white),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
           elevation: 3, shadowColor: Colors.black12,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
       elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
             padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)))),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
       inputDecorationTheme: InputDecorationTheme(
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
         filled: true, fillColor: Colors.grey.shade50,
@@ -77,7 +77,7 @@ class _HomePageState extends State<HomePage> {
                         const Icon(Icons.store, size: 32, color: Colors.white),
                         const SizedBox(width: 8),
                         Text(
-                          'mohana kunji',
+                          'jacksprrows',
                           style: const TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
@@ -96,5 +96,6 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     ),
+    bottomNavigationBar: _currentPageIndex == 0 ? _buildBottomNavigationBar() : null,
   );
 }
