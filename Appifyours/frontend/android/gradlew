@@ -91,6 +91,14 @@ if ! "$cygwin" && ! "$darwin" && ! "$nonstop"; then
     esac
 fi
 
+# Collect all arguments for the java command, stacking in reverse order:
+#   * args from the command line
+#   * the main class name
+#   * -classpath
+#   * -D...appname settings
+#   * --module-path (only if needed)
+#   * DEFAULT_JVM_OPTS, JAVA_OPTS, and GRADLE_OPTS environment variables
+
 # For Cygwin or MSYS, switch paths to Windows format before running java
 if "$cygwin" || "$msys"; then
     APP_HOME=$(cygpath --path --mixed "$APP_HOME")
@@ -105,7 +113,7 @@ if "$cygwin" || "$msys"; then
             -*) false ;;
             # doesn't match option pattern
             ?*)
-                eval "set -- "$@" "$arg""
+                eval "set -- "\$@" "$arg""
                 ;;
             esac
         then break; fi
@@ -114,7 +122,7 @@ fi
 
 # Escape application args
 save() {
-    for i; do printf %s\n "$i" | sed "s/'/'\\''/g;1s/^/'/;$$s/$/' \\/"; done
+    for i; do printf %s\n "$i" | sed "s/'/'\\\\''/g;1s/^/'/;\$s/\$/' \\\\/"; done
     echo " "
 }
 APP_ARGS=$(save "$@")
