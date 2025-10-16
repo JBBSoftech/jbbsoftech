@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:carousel_slider/carousel_slider.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
 
 void main() => runApp(const MyApp());
 
@@ -78,8 +76,15 @@ class Product {
 }
 
 class ProductService {
-  static Future<List<Product>> fetchProducts() async {
-    final response = await http.get(Uri.parse('http://localhost:5000/api/products'));
+  static Future<List<Product>> fetchProducts({String? search}) async {
+    Uri url;
+    if (search != null && search.isNotEmpty) {
+      url = Uri.parse('http://localhost:5000/api/products?search=$search');
+    } else {
+      url = Uri.parse('http://localhost:5000/api/products');
+    }
+    
+    final response = await http.get(url);
     if (response.statusCode == 200) {
       List<dynamic> body = jsonDecode(response.body);
       List<Product> products = body.map((dynamic item) => Product.fromJson(item)).toList();
@@ -92,47 +97,16 @@ class ProductService {
 
 class WishlistService {
   static Future<void> addToWishlist(String productId) async {
-    final prefs = await SharedPreferences.getInstance();
-    final userId = prefs.getString('userId') ?? 'default_user';
-
-    final response = await http.post(
-      Uri.parse('http://localhost:5000/api/wishlist'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'userId': userId, 'productId': productId}),
-    );
-
-    if (response.statusCode != 201) {
-      throw Exception('Failed to add to wishlist');
-    }
+    // Implementation for adding to wishlist
   }
 
   static Future<void> removeFromWishlist(String productId) async {
-    final prefs = await SharedPreferences.getInstance();
-    final userId = prefs.getString('userId') ?? 'default_user';
-
-    final response = await http.delete(
-      Uri.parse('http://localhost:5000/api/wishlist'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'userId': userId, 'productId': productId}),
-    );
-
-    if (response.statusCode != 200) {
-      throw Exception('Failed to remove from wishlist');
-    }
+    // Implementation for removing from wishlist
   }
 
   static Future<List<Product>> getWishlist() async {
-    final prefs = await SharedPreferences.getInstance();
-    final userId = prefs.getString('userId') ?? 'default_user';
-
-    final response = await http.get(Uri.parse('http://localhost:5000/api/wishlist/$userId'));
-    if (response.statusCode == 200) {
-      List<dynamic> body = jsonDecode(response.body);
-      List<Product> products = body.map((dynamic item) => Product.fromJson(item)).toList();
-      return products;
-    } else {
-      throw Exception('Failed to load wishlist');
-    }
+    // Implementation for getting wishlist
+    return [];
   }
 }
 
@@ -156,6 +130,7 @@ class _HomePageState extends State<HomePage> {
   void _updateSearchTerm(String term) {
     setState(() {
       _searchTerm = term;
+      _productsFuture = ProductService.fetchProducts(search: term);
     });
   }
 
@@ -171,250 +146,36 @@ class _HomePageState extends State<HomePage> {
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
           return const Center(child: Text('No products found'));
         } else {
-          List<Product> filteredProducts = snapshot.data!.where((product) {
-            final name = product.name.toLowerCase();
-            final description = product.description.toLowerCase();
-            return name.contains(_searchTerm.toLowerCase()) || 
-                   description.contains(_searchTerm.toLowerCase());
-          }).toList();
+          List<Product> products = snapshot.data!;
           
           return SingleChildScrollView(
             child: Column(
               children: [
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: TextField(
-            decoration: InputDecoration(
-              hintText: 'Search products',
-              prefixIcon: const Icon(Icons.search),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-            ),
-            onChanged: (value) async {
-              if (value.isNotEmpty) {
-                final searchResults = await ProductService.fetchProducts(search: value);
-                setState(() {
-                  products = searchResults;
-                });
-              } else {
-                _loadProducts();
-              }
+          ProductSearchBarWidget(
+            placeholder: 'Search products',
+            onSearchChanged: (term) {
+              // This will be handled by the HomePage
             },
           ),
-        ),
-                Container(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'All Products',
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 12),
-              isLoading
-                  ? Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(32.0),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            CircularProgressIndicator(),
-                            SizedBox(height: 16),
-                            Text('Loading products...', style: TextStyle(color: Colors.grey)),
-                          ],
-                        ),
-                      ),
-                    )
-                  : errorMessage != null
-                      ? Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(32.0),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.error_outline, size: 48, color: Colors.orange),
-                                SizedBox(height: 16),
-                                Text(
-                                  errorMessage!,
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(color: Colors.grey),
-                                ),
-                                SizedBox(height: 16),
-                                ElevatedButton.icon(
-                                  onPressed: _loadProducts,
-                                  icon: Icon(Icons.refresh),
-                                  label: Text('Retry'),
-                                ),
-                              ],
-                            ),
-                          ),
-                        )
-                      : products.isEmpty
-                          ? Center(
-                              child: Padding(
-                                padding: const EdgeInsets.all(32.0),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(Icons.shopping_bag_outlined, size: 48, color: Colors.grey),
-                                    SizedBox(height: 16),
-                                    Text('No products available', style: TextStyle(color: Colors.grey)),
-                                  ],
-                                ),
-                              ),
-                            )
-                          : GridView.builder(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 2,
-                                childAspectRatio: 1.2,
-                                crossAxisSpacing: 10,
-                                mainAxisSpacing: 10,
-                              ),
-                              itemCount: products.length,
-                              itemBuilder: (context, index) {
-                                final product = products[index];
-                                return Card(
-                                  elevation: 3,
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        flex: 1,
-                                        child: Container(
-                                          height: double.infinity,
-                                          decoration: BoxDecoration(
-                                            color: Colors.grey[200],
-                                            borderRadius: BorderRadius.horizontal(left: Radius.circular(4)),
-                                          ),
-                                          child: product.imageUrl != null && product.imageUrl!.isNotEmpty
-                                              ? Image.network(
-                                                  product.imageUrl!,
-                                                  fit: BoxFit.cover,
-                                                  errorBuilder: (context, error, stackTrace) => Icon(Icons.image, size: 40, color: Colors.grey),
-                                                )
-                                              : Icon(Icons.image, size: 40, color: Colors.grey),
-                                        ),
-                                      ),
-                                      Expanded(
-                                        flex: 1,
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                            children: [
-                                              Text(
-                                                product.name,
-                                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-                                                maxLines: 2,
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                              if (product.offerPercentage > 0) ...[
-                                                Row(
-                                                  children: [
-                                                    Text(
-                                                      '₹${product.finalPrice.toStringAsFixed(0)}',
-                                                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.green),
-                                                    ),
-                                                    SizedBox(width: 4),
-                                                    Text(
-                                                      '₹${product.basePrice.toStringAsFixed(0)}',
-                                                      style: TextStyle(
-                                                        fontSize: 10,
-                                                        color: Colors.grey,
-                                                        decoration: TextDecoration.lineThrough,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ] else
-                                                Text(
-                                                  '₹${product.basePrice.toStringAsFixed(0)}',
-                                                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                                                ),
-                                              if (product.shopName != null)
-                                                Text('Brand: ${product.shopName}', style: TextStyle(fontSize: 9)),
-                                              Text(
-                                                'Stock: ${product.stock > 0 ? "In Stock" : "Out of Stock"}',
-                                                style: TextStyle(
-                                                  fontSize: 9,
-                                                  color: product.stock > 0 ? Colors.green : Colors.red,
-                                                ),
-                                              ),
-                                              SizedBox(height: 4),
-                                              Row(
-                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                children: [
-                                                  Container(
-                                                    decoration: BoxDecoration(
-                                                      border: Border.all(color: Colors.grey.shade300),
-                                                      borderRadius: BorderRadius.circular(4),
-                                                    ),
-                                                    child: Row(
-                                                      mainAxisSize: MainAxisSize.min,
-                                                      children: [
-                                                        SizedBox(
-                                                          width: 20,
-                                                          height: 20,
-                                                          child: IconButton(
-                                                            padding: EdgeInsets.zero,
-                                                            icon: Icon(Icons.remove, size: 12),
-                                                            onPressed: () {},
-                                                          ),
-                                                        ),
-                                                        Text('1', style: TextStyle(fontSize: 10)),
-                                                        SizedBox(
-                                                          width: 20,
-                                                          height: 20,
-                                                          child: IconButton(
-                                                            padding: EdgeInsets.zero,
-                                                            icon: Icon(Icons.add, size: 12),
-                                                            onPressed: () {},
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                  IconButton(
-                                                    padding: EdgeInsets.zero,
-                                                    constraints: BoxConstraints(),
-                                                    icon: Icon(Icons.favorite_border, size: 16),
-                                                    onPressed: () {},
-                                                  ),
-                                                ],
-                                              ),
-                                              SizedBox(
-                                                height: 24,
-                                                child: ElevatedButton(
-                                                  onPressed: product.stock > 0 ? () {} : null,
-                                                  style: ElevatedButton.styleFrom(
-                                                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                                    minimumSize: Size(double.infinity, 24),
-                                                  ),
-                                                  child: Text('Add to Cart', style: TextStyle(fontSize: 9)),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              },
-                            ),
-            ],
+                  ProductDetailCardWidget(
+            category: 'All Products',
+            columns: 2,
+            products: [], // This will be filled by the HomePage
           ),
-        ),
-                        ProductGridWidget(
-                  products: filteredProducts,
-                  searchTerm: _searchTerm,
-                  onSearchChanged: _updateSearchTerm,
-                ),
-              ],
+                  HeaderWidget(
+            appName: 'My Store',
+            backgroundColor: Colors.blue,
+          ),
+                  Container(
+            padding: const EdgeInsets.all(16.0),
+            color: Colors.grey[200],
+            child: Text('Widget: BottomNavigationBarWidget'),
+          ),
+                  ProductGridWidget(
+            products: [], // This will be filled by the HomePage
+            columns: 2,
+          ),
+                      ],
             ),
           );
         }
@@ -422,17 +183,101 @@ class _HomePageState extends State<HomePage> {
     ),
   );
 }
+// Header Widget
+class HeaderWidget extends StatelessWidget {
+  final String appName;
+  final Color backgroundColor;
 
+  const HeaderWidget({
+    super.key,
+    required this.appName,
+    required this.backgroundColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16.0),
+      color: backgroundColor,
+      child: Text(
+        appName,
+        style: const TextStyle(color: Colors.white, fontSize: 20),
+      ),
+    );
+  }
+}
+
+// Product Search Bar Widget
+class ProductSearchBarWidget extends StatelessWidget {
+  final String placeholder;
+  final Function(String) onSearchChanged;
+
+  const ProductSearchBarWidget({
+    super.key,
+    required this.placeholder,
+    required this.onSearchChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: TextField(
+        decoration: InputDecoration(
+          hintText: placeholder,
+          prefixIcon: const Icon(Icons.search),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+        ),
+        onChanged: onSearchChanged,
+      ),
+    );
+  }
+}
+
+// Hero Banner Widget
+class HeroBannerWidget extends StatelessWidget {
+  final String title;
+  final Color backgroundColor;
+
+  const HeroBannerWidget({
+    super.key,
+    required this.title,
+    required this.backgroundColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 200,
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Center(
+        child: Text(
+          title,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// Catalog View Card / Product Grid Widget
 class ProductGridWidget extends StatelessWidget {
   final List<Product> products;
-  final String searchTerm;
-  final Function(String) onSearchChanged;
+  final int columns;
 
   const ProductGridWidget({
     super.key,
     required this.products,
-    required this.searchTerm,
-    required this.onSearchChanged,
+    required this.columns,
   });
 
   @override
@@ -453,8 +298,8 @@ class ProductGridWidget extends StatelessWidget {
             GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: columns,
                 mainAxisSpacing: 12,
                 crossAxisSpacing: 12,
                 childAspectRatio: 0.55,
@@ -584,6 +429,285 @@ class ProductGridWidget extends StatelessWidget {
                                       ),
                                     ),
                                 ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+// Store Info Widget
+class StoreInfoWidget extends StatelessWidget {
+  final String storeName;
+  final String address;
+  final String email;
+  final String phone;
+
+  const StoreInfoWidget({
+    super.key,
+    required this.storeName,
+    required this.address,
+    required this.email,
+    required this.phone,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              storeName,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Text(address),
+            const SizedBox(height: 8),
+            Text(email),
+            const SizedBox(height: 8),
+            Text(phone),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// Profile Widget
+class ProfileWidget extends StatelessWidget {
+  final String profileTitle;
+  final String buttonText;
+  final Color buttonColor;
+
+  const ProfileWidget({
+    super.key,
+    required this.profileTitle,
+    required this.buttonText,
+    required this.buttonColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            profileTitle,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 16),
+          CircleAvatar(
+            radius: 40,
+            backgroundColor: Colors.grey[300],
+            child: const Icon(Icons.person, size: 40),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'John Doe',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'john.doe@example.com',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey[600],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () {},
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    backgroundColor: buttonColor,
+                  ),
+                  child: Text(
+                    buttonText,
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// Product Detail Card Widget
+class ProductDetailCardWidget extends StatelessWidget {
+  final String category;
+  final int columns;
+  final List<Product> products;
+
+  const ProductDetailCardWidget({
+    super.key,
+    required this.category,
+    required this.columns,
+    required this.products,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            category,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 12),
+          if (products.isEmpty)
+            const Center(child: Text('No products available'))
+          else
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: columns,
+                childAspectRatio: 1.2,
+                crossAxisSpacing: 10,
+                mainAxisSpacing: 10,
+              ),
+              itemCount: products.length,
+              itemBuilder: (context, index) {
+                final product = products[index];
+                return Card(
+                  elevation: 3,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        flex: 1,
+                        child: Container(
+                          height: double.infinity,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[200],
+                            borderRadius: const BorderRadius.horizontal(left: Radius.circular(4)),
+                          ),
+                          child: product.imageUrl.isNotEmpty
+                              ? Image.network(
+                                  product.imageUrl,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) => 
+                                      const Icon(Icons.image, size: 40, color: Colors.grey),
+                                )
+                              : const Icon(Icons.image, size: 40, color: Colors.grey),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 1,
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              Text(
+                                product.name,
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              if (product.discountPercentage != null) ...[
+                                Row(
+                                  children: [
+                                    Text(
+                                      '\$${product.discountedPrice.toStringAsFixed(0)}',
+                                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.green),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      '\$${product.originalPrice.toStringAsFixed(0)}',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        color: Colors.grey,
+                                        decoration: TextDecoration.lineThrough,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ] else
+                                Text(
+                                  '\$${product.originalPrice.toStringAsFixed(0)}',
+                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                                ),
+                              const SizedBox(height: 4),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      border: Border.all(color: Colors.grey.shade300),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        SizedBox(
+                                          width: 20,
+                                          height: 20,
+                                          child: IconButton(
+                                            padding: EdgeInsets.zero,
+                                            icon: const Icon(Icons.remove, size: 12),
+                                            onPressed: () {},
+                                          ),
+                                        ),
+                                        const Text('1', style: TextStyle(fontSize: 10)),
+                                        SizedBox(
+                                          width: 20,
+                                          height: 20,
+                                          child: IconButton(
+                                            padding: EdgeInsets.zero,
+                                            icon: const Icon(Icons.add, size: 12),
+                                            onPressed: () {},
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  IconButton(
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(),
+                                    icon: const Icon(Icons.favorite_border, size: 16),
+                                    onPressed: () {},
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              SizedBox(
+                                height: 24,
+                                child: ElevatedButton(
+                                  onPressed: () {},
+                                  style: ElevatedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                    minimumSize: const Size(double.infinity, 24),
+                                  ),
+                                  child: const Text('Add to Cart', style: TextStyle(fontSize: 9)),
+                                ),
                               ),
                             ],
                           ),
